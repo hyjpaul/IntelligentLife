@@ -1,6 +1,7 @@
 package com.hyj.administrator.intelligentlife;
 
-import android.support.v7.app.AppCompatActivity;
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -9,7 +10,12 @@ import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
 import android.widget.RelativeLayout;
 
-public class SplashActivity extends AppCompatActivity {
+import com.hyj.administrator.intelligentlife.utils.SharedPreUtil;
+
+/**
+ * 闪屏页面
+ */
+public class SplashActivity extends Activity {
     private RelativeLayout mSplashLayout;
 
     @Override
@@ -44,5 +50,39 @@ public class SplashActivity extends AppCompatActivity {
 
         // 启动动画
         mSplashLayout.startAnimation(set);
+
+        set.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                // 动画结束,跳转页面
+                // 如果是第一次进入, 跳新手引导
+                // 否则跳主页面
+                boolean isFirstEnter = SharedPreUtil.getBoolean(
+                        SplashActivity.this, "isFirstEnter", true);
+
+                Intent intent;
+                if (isFirstEnter) {
+                    // 新手引导
+                    intent = new Intent(SplashActivity.this, GuideActivity.class);
+                } else {
+                    // 主页面
+                    intent = new Intent(SplashActivity.this, MainActivity.class);
+                }
+
+                startActivity(intent);
+
+                finish();// 结束当前页面
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
     }
 }
