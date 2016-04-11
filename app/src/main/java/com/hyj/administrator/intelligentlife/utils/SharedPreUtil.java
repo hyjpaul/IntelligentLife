@@ -15,7 +15,7 @@ public class SharedPreUtil {
 
     public static void setBoolean(Context context, String key, boolean value) {
         SharedPreferences sp = context.getSharedPreferences("config", Context.MODE_PRIVATE);
-        sp.edit().putBoolean(key, value);
+        sp.edit().putBoolean(key, value).commit();
     }
 
     public static void setString(Context context, String key, String value) {

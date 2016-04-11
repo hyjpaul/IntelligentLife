@@ -1,6 +1,7 @@
 package com.hyj.administrator.intelligentlife;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -8,9 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+
+import com.hyj.administrator.intelligentlife.utils.SharedPreUtil;
 
 import java.util.ArrayList;
 
@@ -24,6 +28,7 @@ public class GuideActivity extends Activity {
     private ImageView ivRedPoint;// 小红点
     // 小红点移动距离
     private int mPointDis;
+    private Button mBtnStart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +39,7 @@ public class GuideActivity extends Activity {
         mViewPager = (ViewPager) findViewById(R.id.vp_guide);
         llContainer = (LinearLayout) findViewById(R.id.ll_container);
         ivRedPoint = (ImageView) findViewById(R.id.iv_red_point);
+        mBtnStart = (Button) findViewById(R.id.btn_start);
 
         initData();// 先初始化数据
         mViewPager.setAdapter(new GuideAdapter());// 设置数据
@@ -42,8 +48,8 @@ public class GuideActivity extends Activity {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 // 当页面滑动过程中的回调
-                System.out.println("当前位置:" + position + ";移动偏移百分比:"
-                        + positionOffset);
+//                System.out.println("当前位置:" + position + ";移动偏移百分比:"
+//                        + positionOffset);
                 // 更新小红点距离
                 int leftMargin = (int) (mPointDis * positionOffset) + position
                         * mPointDis;// 计算小红点当前的左边距
@@ -57,6 +63,12 @@ public class GuideActivity extends Activity {
 
             @Override
             public void onPageSelected(int position) {
+                // 某个页面被选中
+                if (position == mImageViewList.size() - 1) {// 最后一个页面显示开始体验的按钮
+                    mBtnStart.setVisibility(View.VISIBLE);
+                }else {
+                    mBtnStart.setVisibility(View.INVISIBLE);
+                }
 
             }
 
@@ -91,6 +103,20 @@ public class GuideActivity extends Activity {
                         System.out.println("圆点距离:" + mPointDis);
                     }
                 });
+
+        mBtnStart.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                //更新sp, 已经不是第一次进入了
+                SharedPreUtil.setBoolean(GuideActivity.this, "isFirstEnter", false);
+
+                //跳到主页面
+                Intent intent = new Intent(GuideActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
     }
 
     // 引导页图片id数组
