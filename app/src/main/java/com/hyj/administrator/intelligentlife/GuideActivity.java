@@ -112,7 +112,7 @@ public class GuideActivity extends Activity {
                 SharedPreUtil.setBoolean(GuideActivity.this, "isFirstEnter", false);
 
                 //跳到主页面
-                Intent intent = new Intent(GuideActivity.this, MainActivity.class);
+                Intent intent = new Intent(GuideActivity.this, SlideActivity.class);
                 startActivity(intent);
                 finish();
             }

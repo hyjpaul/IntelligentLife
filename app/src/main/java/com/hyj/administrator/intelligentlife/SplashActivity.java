@@ -71,7 +71,7 @@ public class SplashActivity extends Activity {
                     intent = new Intent(SplashActivity.this, GuideActivity.class);
                 } else {
                     // 主页面
-                    intent = new Intent(SplashActivity.this, MainActivity.class);
+                    intent = new Intent(SplashActivity.this, SlideActivity.class);
                 }
 
                 startActivity(intent);
