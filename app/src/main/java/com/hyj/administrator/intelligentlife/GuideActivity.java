@@ -108,7 +108,7 @@ public class GuideActivity extends Activity {
 
             @Override
             public void onClick(View v) {
-                //更新sp, 已经不是第一次进入了
+                //更新sp, 当按下开始体验按钮就表示，以后再进入应用就不是第一次进入了
                 SharedPreUtil.setBoolean(GuideActivity.this, "isFirstEnter", false);
 
                 //跳到主页面
