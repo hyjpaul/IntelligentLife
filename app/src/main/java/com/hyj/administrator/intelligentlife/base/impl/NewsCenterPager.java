@@ -7,7 +7,9 @@ import android.view.Gravity;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.hyj.administrator.intelligentlife.base.BasePager;
+import com.hyj.administrator.intelligentlife.domain.News;
 import com.hyj.administrator.intelligentlife.global.GlobalConstants;
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
@@ -20,7 +22,7 @@ import com.lidroid.xutils.http.client.HttpRequest;
  * 新闻中心
  */
 public class NewsCenterPager extends BasePager {
-
+private News mNews;
 
     public NewsCenterPager(Activity activity) {
         super(activity);
@@ -69,6 +71,9 @@ public class NewsCenterPager extends BasePager {
 
     //GSON解析服务器JSON数据
     private void processData(String json) {
+        Gson gson = new Gson();
+        mNews = gson.fromJson(json, News.class);
+        System.out.println(mNews.toString());
 
     }
 }
