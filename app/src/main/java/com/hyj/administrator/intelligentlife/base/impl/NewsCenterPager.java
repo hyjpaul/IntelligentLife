@@ -2,6 +2,7 @@ package com.hyj.administrator.intelligentlife.base.impl;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.TextView;
@@ -11,6 +12,7 @@ import com.google.gson.Gson;
 import com.hyj.administrator.intelligentlife.base.BasePager;
 import com.hyj.administrator.intelligentlife.domain.News;
 import com.hyj.administrator.intelligentlife.global.GlobalConstants;
+import com.hyj.administrator.intelligentlife.utils.CacheUtil;
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
@@ -39,9 +41,17 @@ private News mNews;
 
         mFlContent.addView(view);
 
-        // 请求服务器,获取数据
-        // 开源框架: XUtils
-        getDataFromServer();
+        // 先判断有没有缓存,如果有的话,就加载缓存
+        String cacheJson = CacheUtil.getCache(GlobalConstants.CATEGORY_URL, mActivity);
+
+        if (!TextUtils.isEmpty(cacheJson)) {
+            System.out.println("发现缓存啦...");
+            processData(cacheJson);
+        } else {
+            // 请求服务器,获取数据
+            // 开源框架: XUtils
+            getDataFromServer();
+        }
     }
 
     //从服务器获取数据 需要权限:<uses-permission android:name="android.permission.INTERNET"
@@ -58,6 +68,9 @@ private News mNews;
 
                         // JsonObject, Gson解析JSON数据
                         processData(result);
+
+                        // 写缓存
+                        CacheUtil.setCache(GlobalConstants.CATEGORY_URL, result, mActivity);
                     }
 
                     @Override
@@ -73,7 +86,7 @@ private News mNews;
     private void processData(String json) {
         Gson gson = new Gson();
         mNews = gson.fromJson(json, News.class);
-        System.out.println(mNews.toString());
+        System.out.println("解析结果:"+mNews.toString());
 
     }
 }
