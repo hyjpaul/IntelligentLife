@@ -1,15 +1,18 @@
 package com.hyj.administrator.intelligentlife.base.impl;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Gravity;
-import android.widget.TextView;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.hyj.administrator.intelligentlife.base.BaseMenuDetailPager;
 import com.hyj.administrator.intelligentlife.base.BasePager;
+import com.hyj.administrator.intelligentlife.base.impl.menudetail.InteractMenuDetailPager;
+import com.hyj.administrator.intelligentlife.base.impl.menudetail.NewsMenuDetailPager;
+import com.hyj.administrator.intelligentlife.base.impl.menudetail.PhotosMenuDetailPager;
+import com.hyj.administrator.intelligentlife.base.impl.menudetail.TopicMenuDetailPager;
 import com.hyj.administrator.intelligentlife.domain.News;
 import com.hyj.administrator.intelligentlife.global.GlobalConstants;
 import com.hyj.administrator.intelligentlife.utils.CacheUtil;
@@ -19,27 +22,33 @@ import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest;
 
+import java.util.ArrayList;
+
 
 /**
- * 新闻中心
+ * 新闻中心页，Fragment布局里有ViewPager，ViewPager的标签页是FrameLayout，FrameLayout里设新闻中心页NewsCenterPager，该页获取数据后点击菜单要替换成对应的多个新闻菜单详情页BaseMenuDetailPager
+ *
  */
 public class NewsCenterPager extends BasePager {
-private News mNews;
+
+    private News mNews;
+
+    private ArrayList<BaseMenuDetailPager> mMenuDetailPagers;// 新闻中心的菜单详情页集合
 
     public NewsCenterPager(Activity activity) {
         super(activity);
     }
 
-    public void initData()  {
+    public void initData() {
         //System.out.println("新闻中心初始化啦...");
         // 要给帧布局填充布局对象
-        TextView view = new TextView(mActivity);
-        view.setText("新闻中心");
-        view.setTextColor(Color.RED);
-        view.setTextSize(22);
-        view.setGravity(Gravity.CENTER);
-
-        mFlContent.addView(view);
+        //要被新闻中心菜单详情页替换所以注释掉
+//        TextView view = new TextView(mActivity);
+//        view.setText("新闻中心");
+//        view.setTextColor(Color.RED);
+//        view.setTextSize(22);
+//        view.setGravity(Gravity.CENTER);
+//        mFlContent.addView(view);
 
         // 先判断有没有缓存,如果有的话,就加载缓存
         String cacheJson = CacheUtil.getCache(GlobalConstants.CATEGORY_URL, mActivity);
@@ -64,7 +73,7 @@ private News mNews;
                     public void onSuccess(ResponseInfo<String> responseInfo) {
                         // 请求成功
                         String result = responseInfo.result;// 获取服务器返回结果
-                        Log.i("服务器返回结果:" , result);
+                        Log.i("服务器返回结果:", result);
 
                         // JsonObject, Gson解析JSON数据
                         processData(result);
@@ -86,7 +95,33 @@ private News mNews;
     private void processData(String json) {
         Gson gson = new Gson();
         mNews = gson.fromJson(json, News.class);
-        System.out.println("解析结果:"+mNews.toString());
+        System.out.println("解析结果:" + mNews.toString());
+
+        // 初始化4个菜单详情页
+        mMenuDetailPagers = new ArrayList<BaseMenuDetailPager>();
+        mMenuDetailPagers.add(new NewsMenuDetailPager(mActivity));
+        mMenuDetailPagers.add(new TopicMenuDetailPager(mActivity));
+        mMenuDetailPagers.add(new PhotosMenuDetailPager(mActivity));
+        mMenuDetailPagers.add(new InteractMenuDetailPager(mActivity));
+
+        // 将新闻菜单详情页设置为默认页面
+        setCurrentMenuDetailPager(0);
+    }
+
+    //设置新闻中心菜单详情页
+    public void setCurrentMenuDetailPager(int position) {
+        // 重新给frameLayout添加内容
+        BaseMenuDetailPager pager = mMenuDetailPagers.get(position);// 获取当前应该显示的页面
+        View view = pager.mRootView;// 当前页面的布局
+
+        // 清除之前旧的布局
+        mFlContent.removeAllViews();
+
+        // 给帧布局添加布局
+        mFlContent.addView(view);
+
+        // 初始化页面数据
+        pager.initData();
 
     }
 }
