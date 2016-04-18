@@ -54,7 +54,7 @@ public class SlideActivity extends AppCompatActivity
         transaction.commit();
     }
 
-    //通过ContentFragment得到NewsCenterPager然后设置新闻中心菜单详情页，通过导航栏点击切换菜单
+    //通过ContentFragment得到新闻中心页NewsCenterPager然后设置新闻中心的菜单详情页，通过导航栏点击切换菜单
     protected void setCurrentMenuDetailPager(int position) {
         // 获取ContentFragment
         ContentFragment fragment = (ContentFragment) getSupportFragmentManager()

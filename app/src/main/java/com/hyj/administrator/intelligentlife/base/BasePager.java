@@ -7,7 +7,7 @@ import android.widget.FrameLayout;
 import com.hyj.administrator.intelligentlife.R;
 
 /**
- * 五个标签页的基类
+ * 五个ViewPager标签页的基类
  */
 public class BasePager {
     public Activity mActivity;
