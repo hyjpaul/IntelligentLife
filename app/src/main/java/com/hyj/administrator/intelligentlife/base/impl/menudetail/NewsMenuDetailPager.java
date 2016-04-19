@@ -11,6 +11,7 @@ import com.hyj.administrator.intelligentlife.base.BaseMenuDetailPager;
 import com.hyj.administrator.intelligentlife.domain.News;
 import com.lidroid.xutils.ViewUtils;
 import com.lidroid.xutils.view.annotation.ViewInject;
+import com.viewpagerindicator.TabPageIndicator;
 
 import java.util.ArrayList;
 
@@ -21,10 +22,13 @@ import java.util.ArrayList;
  * @author Kevin
  * @date 2015-10-18
  */
-public class NewsMenuDetailPager extends BaseMenuDetailPager {
+public class NewsMenuDetailPager extends BaseMenuDetailPager  {
 
     @ViewInject(R.id.vp_news_menu_detail)
     private ViewPager mViewPager;//通过TextUtil注入的方式，相当于findviewbyid
+
+    @ViewInject(R.id.indicator)
+    private TabPageIndicator mIndicator;
 
     //NewsCenterPager请求服务器返回的数据，在new NewsMenuDetailPager的时候传给构造方法
     private ArrayList<News.NewsTabData> mTabData;// 页签网络数据
@@ -48,7 +52,16 @@ public class NewsMenuDetailPager extends BaseMenuDetailPager {
         return view;
     }
 
+
     class NewsMenuDetailAdapter extends PagerAdapter {
+
+        // 指定指示器的标题
+        @Override
+        public CharSequence getPageTitle(int position) {
+            News.NewsTabData data = mTabData.get(position);
+            return data.title;
+        }
+
         @Override
         public int getCount() {
             return mPagers.size();
@@ -84,10 +97,14 @@ public class NewsMenuDetailPager extends BaseMenuDetailPager {
         // 初始化页签
         mPagers = new ArrayList<NewsMenuDetailTab>();
         for (int i = 0; i < mTabData.size(); i++) {
-            NewsMenuDetailTab pager = new NewsMenuDetailTab(mActivity,mTabData.get(i));
+            NewsMenuDetailTab pager = new NewsMenuDetailTab(mActivity, mTabData.get(i));
             mPagers.add(pager);
         }
 
         mViewPager.setAdapter(new NewsMenuDetailAdapter());
+
+        mIndicator.setViewPager(mViewPager);// 将viewpager和指示器绑定在一起.注意:必须在viewpager设置完数据之后再绑定
+
     }
+
 }

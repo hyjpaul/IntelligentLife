@@ -9,6 +9,8 @@
     </style>
 
     <style name="AppTheme.NoActionBar">
+        <item name="vpiIconPageIndicatorStyle">@style/Widget.IconPageIndicator</item>
+        <item name="vpiTabPageIndicatorStyle">@style/Widget.TabPageIndicator</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
