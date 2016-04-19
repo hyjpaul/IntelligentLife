@@ -2,10 +2,12 @@ package com.hyj.administrator.intelligentlife.base.impl.menudetail;
 
 import android.app.Activity;
 import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -23,6 +25,7 @@ import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest;
 import com.lidroid.xutils.view.annotation.ViewInject;
+import com.viewpagerindicator.CirclePageIndicator;
 
 import java.util.ArrayList;
 
@@ -46,8 +49,17 @@ public class NewsMenuDetailTab {
     public Activity mActivity;
     public View mRootView;
 
+    //头条新闻
     @ViewInject(R.id.vp_top_news)
-    public TopNewsViewPager mViewPager;
+    private TopNewsViewPager mViewPager;
+
+    //头条新闻标题
+    @ViewInject(R.id.tv_title)
+    private TextView mTvTitle;
+
+    //头条新闻小圆点snap
+    @ViewInject(R.id.indicator_circle)
+    private CirclePageIndicator mCirclePageIndicator;
 
     public NewsMenuDetailTab(Activity activity, News.NewsTabData newsTabData) {
 
@@ -103,18 +115,49 @@ public class NewsMenuDetailTab {
         Gson gson = new Gson();
         NewsTabBean newsTabBean = gson.fromJson(json, NewsTabBean.class);
 
+        // 头条新闻填充数据
         mTopNews = newsTabBean.data.topnews;
         if (mTopNews != null) {
             mViewPager.setAdapter(new TopNewsAdapter());
+            mCirclePageIndicator.setViewPager(mViewPager);
+            mCirclePageIndicator.setSnap(true);// 快照方式展示(小圆点)
+
+            mCirclePageIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                }
+
+                @Override
+                public void onPageSelected(int position) {
+                    // 更新头条新闻标题
+                    NewsTabBean.TopNews topNews = mTopNews.get(position);
+                    mTvTitle.setText(topNews.title);
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+
+                }
+            });
+
+            // 更新第一个头条新闻标题
+            mTvTitle.setText(mTopNews.get(0).title);
+
+            // 默认让第一个小圆点选中(解决页面销毁后重新初始化时,Indicator仍然保留上次圆点位置的bug)
+            mCirclePageIndicator.onPageSelected(0);
         }
 
     }
 
+    // 头条新闻数据适配器
     class TopNewsAdapter extends PagerAdapter {
         private BitmapUtils mBitmapUtils;
 
         public TopNewsAdapter() {
             mBitmapUtils = new BitmapUtils(mActivity);
+            // 设置加载中的默认图片
+            mBitmapUtils.configDefaultLoadFailedImage(R.drawable.topnews_item_default);
         }
 
         @Override
@@ -149,5 +192,7 @@ public class NewsMenuDetailTab {
             container.removeView((View) object);
         }
     }
+
+
 
 }
