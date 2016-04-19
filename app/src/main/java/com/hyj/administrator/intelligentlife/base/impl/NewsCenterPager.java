@@ -54,7 +54,7 @@ public class NewsCenterPager extends BasePager {
         String cacheJson = CacheUtil.getCache(GlobalConstants.CATEGORY_URL, mActivity);
 
         if (!TextUtils.isEmpty(cacheJson)) {
-            System.out.println("发现缓存啦...");
+//            System.out.println("发现缓存啦...");
             processData(cacheJson);
         } else {
             // 请求服务器,获取数据
@@ -95,7 +95,7 @@ public class NewsCenterPager extends BasePager {
     private void processData(String json) {
         Gson gson = new Gson();
         mNews = gson.fromJson(json, News.class);
-        System.out.println("解析结果:" + mNews.toString());
+//        System.out.println("解析结果:" + mNews.toString());
 
         // 初始化4个菜单详情页
         mMenuDetailPagers = new ArrayList<BaseMenuDetailPager>();
