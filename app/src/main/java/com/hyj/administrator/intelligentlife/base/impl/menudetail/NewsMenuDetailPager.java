@@ -49,6 +49,8 @@ public class NewsMenuDetailPager extends BaseMenuDetailPager  {
 
         View view = View.inflate(mActivity, R.layout.news_menu_detail, null);
         ViewUtils.inject(this, view);
+
+
         return view;
     }
 

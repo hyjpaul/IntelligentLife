@@ -1,51 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--菜单详情页-新闻 NewsMenuDetailPager 中的ViewPager的页签页面-->
+<!--菜单详情页-新闻 NewsMenuDetailPager 以ListView作为布局，头条新闻的布局作为ListView的头布局(list_item-header)-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:orientation="vertical">
+    >
 
-    <!--头条新闻的标题压在图片的上面，所以用帧布局-->
-    <FrameLayout
+    <ListView
+        android:id="@+id/lv_list"
         android:layout_width="match_parent"
-        android:layout_height="180dp">
-
-        <com.hyj.administrator.intelligentlife.view.TopNewsViewPager
-            android:id="@+id/vp_top_news"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="#a000"
-            android:padding="5dp">
-
-            <TextView
-                android:id="@+id/tv_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="标题"
-                android:textColor="#fff"
-                android:textSize="16sp"/>
-
-            <com.viewpagerindicator.CirclePageIndicator
-                android:id="@+id/indicator_circle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:paddingLeft="5dp"
-                android:paddingRight="5dp"
-                app:fillColor="#f00"
-                app:pageColor="#cccccc"
-                app:radius="3dp"
-                app:strokeWidth="0dp"
-                />
-
-        </RelativeLayout>
-
-    </FrameLayout>
+        android:layout_height="match_parent"/>
 </LinearLayout>

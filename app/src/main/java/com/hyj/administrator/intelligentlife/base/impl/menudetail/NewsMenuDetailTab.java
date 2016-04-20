@@ -6,7 +6,9 @@ import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,6 +63,12 @@ public class NewsMenuDetailTab {
     @ViewInject(R.id.indicator_circle)
     private CirclePageIndicator mCirclePageIndicator;
 
+    //新闻列表ListView
+    @ViewInject(R.id.lv_list)
+    private ListView mNewsListView;
+
+    private NewsListAdapter mNewsListAdapter;
+
     public NewsMenuDetailTab(Activity activity, News.NewsTabData newsTabData) {
 
         mActivity = activity;
@@ -78,7 +86,13 @@ public class NewsMenuDetailTab {
 //        view.setGravity(Gravity.CENTER);
 //        return view;
         View view = View.inflate(mActivity, R.layout.news_menu_detail_tab, null);
-        ViewUtils.inject(this,view);
+        ViewUtils.inject(this, view);//注入ListView
+
+        // 给新闻listview添加头布局
+        View mHeaderView = View.inflate(mActivity, R.layout.list_item_header, null);
+        ViewUtils.inject(this, mHeaderView);// 此处必须将头布局也注入
+        mNewsListView.addHeaderView(mHeaderView);
+
         return view;
     }
 
@@ -148,6 +162,13 @@ public class NewsMenuDetailTab {
             mCirclePageIndicator.onPageSelected(0);
         }
 
+        // 列表新闻
+        mNewsList = newsTabBean.data.news;
+        if (mNewsList != null) {
+            mNewsListAdapter = new NewsListAdapter();
+            mNewsListView.setAdapter(mNewsListAdapter);
+        }
+
     }
 
     // 头条新闻数据适配器
@@ -181,7 +202,7 @@ public class NewsMenuDetailTab {
 
             // 下载图片-将图片设置给imageview-避免内存溢出-缓存
             // BitmapUtils-XUtils自动下载网络并缓存
-            mBitmapUtils.display(imgView,imageUrl);
+            mBitmapUtils.display(imgView, imageUrl);
 
             container.addView(imgView);
             return imgView;
@@ -193,6 +214,59 @@ public class NewsMenuDetailTab {
         }
     }
 
+    //新闻列表ListView适配器
+    class NewsListAdapter extends BaseAdapter {
 
+        private BitmapUtils bimapUtils;
+
+        public NewsListAdapter() {
+            bimapUtils = new BitmapUtils(mActivity);
+            bimapUtils.configDefaultLoadingImage(R.drawable.topnews_item_default);
+        }
+
+        @Override
+        public int getCount() {
+            return mNewsList.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return mNewsList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ViewHolder holder;
+            if (convertView == null) {
+                convertView = View.inflate(mActivity, R.layout.list_item_news, null);
+                holder = new ViewHolder();
+                holder.ivIcon = (ImageView) convertView.findViewById(R.id.iv_icon);
+                holder.tvTitle = (TextView) convertView.findViewById(R.id.tv_title);
+                holder.tvDate = (TextView) convertView.findViewById(R.id.tv_date);
+                convertView.setTag(holder);
+            } else {
+                holder = (ViewHolder) convertView.getTag();
+            }
+
+            NewsTabBean.NewsData news = (NewsTabBean.NewsData) getItem(position);
+            holder.tvTitle.setText(news.title);
+            holder.tvDate.setText(news.pubdate);
+
+            bimapUtils.display(holder.ivIcon, news.listimage);
+
+            return convertView;
+        }
+    }
+
+    static class ViewHolder {
+        public ImageView ivIcon;
+        public TextView tvTitle;
+        public TextView tvDate;
+    }
 
 }
