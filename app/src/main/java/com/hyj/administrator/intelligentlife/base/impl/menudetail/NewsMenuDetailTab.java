@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +17,7 @@ import com.hyj.administrator.intelligentlife.domain.News;
 import com.hyj.administrator.intelligentlife.domain.NewsTabBean;
 import com.hyj.administrator.intelligentlife.global.GlobalConstants;
 import com.hyj.administrator.intelligentlife.utils.CacheUtil;
+import com.hyj.administrator.intelligentlife.view.PullToRefreshListView;
 import com.hyj.administrator.intelligentlife.view.TopNewsViewPager;
 import com.lidroid.xutils.BitmapUtils;
 import com.lidroid.xutils.HttpUtils;
@@ -34,7 +34,7 @@ import java.util.ArrayList;
 
 /**
  * 菜单详情页-新闻 NewsMenuDetailPager 中的ViewPager的页签页面对象
- * <p>
+ * <p/>
  * * ViewPagerIndicator使用流程: 1.引入库 2.解决support-v4冲突(让两个版本一致) 3.从例子程序中拷贝布局文件
  * 4.从例子程序中拷贝相关代码(指示器和viewpager绑定; 重写getPageTitle返回标题) 5.在清单文件中增加样式 6.背景修改为白色
  * 7.修改样式-背景样式&文字样式
@@ -65,7 +65,7 @@ public class NewsMenuDetailTab {
 
     //新闻列表ListView
     @ViewInject(R.id.lv_list)
-    private ListView mNewsListView;
+    private PullToRefreshListView mNewsListView;
 
     private NewsListAdapter mNewsListAdapter;
 
@@ -93,6 +93,15 @@ public class NewsMenuDetailTab {
         ViewUtils.inject(this, mHeaderView);// 此处必须将头布局也注入
         mNewsListView.addHeaderView(mHeaderView);
 
+        // 5. 前端界面自定义ListView设置回调
+        mNewsListView.setOnRefreshListener(new PullToRefreshListView.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // 刷新数据
+                getDataFromServer();
+            }
+        });
+
         return view;
     }
 
@@ -115,12 +124,18 @@ public class NewsMenuDetailTab {
                 processData(result);
 
                 CacheUtil.setCache(mUrl, result, mActivity);
+
+                // 收起下拉刷新控件,并刷新时间
+                mNewsListView.onRefreshComplete(true);
             }
 
             @Override
             public void onFailure(HttpException e, String s) {
                 e.printStackTrace();
                 Toast.makeText(mActivity, s, Toast.LENGTH_SHORT).show();
+
+                // 收起下拉刷新控件,不刷新时间
+                mNewsListView.onRefreshComplete(false);
             }
         });
     }

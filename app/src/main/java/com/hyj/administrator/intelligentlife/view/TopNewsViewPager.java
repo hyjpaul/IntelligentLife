@@ -24,7 +24,7 @@ public class TopNewsViewPager extends ViewPager {
     //1. 上下滑动需要被父控件拦截 2. 向右滑动并且当前是第一个页面,需要拦截 3. 向左滑动并且当前是最后一个页面,需要拦截
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        //事件不要被父控件news_menu_detail的viewpager拦截
+        //事件不要被父控件news_menu_detail的viewpager拦截(该控件里切换图片，被父拦截就是父控件里切换页面)
         getParent().requestDisallowInterceptTouchEvent(true);
         switch (ev.getAction()) {
             //按下

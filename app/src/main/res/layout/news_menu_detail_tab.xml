@@ -4,8 +4,8 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
     >
-
-    <ListView
+    <!--用一个自定义的ListView,实现下拉刷新-->
+    <com.hyj.administrator.intelligentlife.view.PullToRefreshListView
         android:id="@+id/lv_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
