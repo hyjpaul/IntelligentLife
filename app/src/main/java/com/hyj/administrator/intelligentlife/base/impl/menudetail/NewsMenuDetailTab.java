@@ -1,11 +1,13 @@
 package com.hyj.administrator.intelligentlife.base.impl.menudetail;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -18,6 +20,7 @@ import com.hyj.administrator.intelligentlife.domain.News;
 import com.hyj.administrator.intelligentlife.domain.NewsTabBean;
 import com.hyj.administrator.intelligentlife.global.GlobalConstants;
 import com.hyj.administrator.intelligentlife.utils.CacheUtil;
+import com.hyj.administrator.intelligentlife.utils.SharedPreUtil;
 import com.hyj.administrator.intelligentlife.view.PullToRefreshListView;
 import com.hyj.administrator.intelligentlife.view.TopNewsViewPager;
 import com.lidroid.xutils.BitmapUtils;
@@ -92,7 +95,7 @@ public class NewsMenuDetailTab {
         ViewUtils.inject(this, view);//注入ListView
 
         // 给新闻listview添加头布局
-        View mHeaderView = View.inflate(mActivity, R.layout.list_item_header, null);
+        final View mHeaderView = View.inflate(mActivity, R.layout.list_item_header, null);
         ViewUtils.inject(this, mHeaderView);// 此处必须将头布局也注入
         mNewsListView.addHeaderView(mHeaderView);
 
@@ -103,7 +106,6 @@ public class NewsMenuDetailTab {
             public void onRefresh() {
                 // 刷新数据
                 getDataFromServer();
-
 
             }
 
@@ -121,6 +123,32 @@ public class NewsMenuDetailTab {
                     // 没有数据时也要收起控件
                     mNewsListView.onRefreshComplete(true);
                 }
+            }
+        });
+
+        //点击ListView的item给已读新闻打上标记，并保存在本地
+        mNewsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                int headerCount = mNewsListView.getHeaderViewsCount();// 获取头布局数量
+                position = position - headerCount;// ListView的Item位置需要减去头布局的占位
+//                System.out.println("第" + position + "个被点击了");
+
+                NewsTabBean.NewsData news = mNewsList.get(position);
+
+                // read_ids: 1101,1102,1105,1203,
+                String readIds = SharedPreUtil.getString(mActivity, "read_ids", "");
+
+                if (!readIds.contains(news.id + "")) {// 避免重复添加同一个id,只有不包含当前id,才追加
+                    readIds = readIds + news.id + ",";
+                    SharedPreUtil.setString(mActivity,"read_ids",readIds);
+                }
+
+                // 要将被点击的item的新闻文字颜色改为灰色, 局部刷新, view对象就是当前被点击的ListView的item对象
+                TextView tvTitle = (TextView) view.findViewById(R.id.tv_title);
+                tvTitle.setTextColor(Color.GRAY);
+                // mNewsAdapter.notifyDataSetChanged();//全局刷新, 也有同样效果但浪费性能
+
             }
         });
 
@@ -338,6 +366,14 @@ public class NewsMenuDetailTab {
             NewsTabBean.NewsData news = (NewsTabBean.NewsData) getItem(position);
             holder.tvTitle.setText(news.title);
             holder.tvDate.setText(news.pubdate);
+
+            //根据本地记录来标记已读未读
+            String readIds = SharedPreUtil.getString(mActivity, "read_ids", "");
+            if (readIds.contains(news.id + "")) {
+                holder.tvTitle.setTextColor(Color.GRAY);
+            }else {//需要写else，因为convertView可能会在下一个未标记的ListView item布局中重用已标记布局
+                holder.tvTitle.setTextColor(Color.BLACK);
+            }
 
             bimapUtils.display(holder.ivIcon, news.listimage);
 
