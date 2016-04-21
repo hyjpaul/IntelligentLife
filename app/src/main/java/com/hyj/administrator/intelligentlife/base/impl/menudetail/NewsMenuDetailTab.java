@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.hyj.administrator.intelligentlife.R;
 import com.hyj.administrator.intelligentlife.domain.News;
 import com.hyj.administrator.intelligentlife.domain.NewsTabBean;
@@ -29,12 +30,13 @@ import com.lidroid.xutils.http.client.HttpRequest;
 import com.lidroid.xutils.view.annotation.ViewInject;
 import com.viewpagerindicator.CirclePageIndicator;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 
 /**
  * 菜单详情页-新闻 NewsMenuDetailPager 中的ViewPager的页签页面对象
- * <p/>
+ * <p>
  * * ViewPagerIndicator使用流程: 1.引入库 2.解决support-v4冲突(让两个版本一致) 3.从例子程序中拷贝布局文件
  * 4.从例子程序中拷贝相关代码(指示器和viewpager绑定; 重写getPageTitle返回标题) 5.在清单文件中增加样式 6.背景修改为白色
  * 7.修改样式-背景样式&文字样式
@@ -43,7 +45,8 @@ public class NewsMenuDetailTab {
 
     private News.NewsTabData mTabData;// 单个页签的网络数据
 
-    private String mUrl;
+    private String mUrl;//最开始的数据链接
+    private String mMoreUrl;//下拉加载的下一页数据链接
 
     private ArrayList<NewsTabBean.TopNews> mTopNews;
     private ArrayList<NewsTabBean.NewsData> mNewsList;
@@ -95,10 +98,29 @@ public class NewsMenuDetailTab {
 
         // 5. 前端界面自定义ListView设置回调
         mNewsListView.setOnRefreshListener(new PullToRefreshListView.OnRefreshListener() {
+            //下拉刷新
             @Override
             public void onRefresh() {
                 // 刷新数据
                 getDataFromServer();
+
+
+            }
+
+            //上拉加载更多
+            @Override
+            public void onLoadMore() {
+                // 判断是否有下一页数据
+                if (mMoreUrl != null) {
+                    // 有下一页
+                    getMoreDataFromServer();
+                } else {
+                    // 没有下一页
+                    Toast.makeText(mActivity, "没有更多数据了", Toast.LENGTH_SHORT)
+                            .show();
+                    // 没有数据时也要收起控件
+                    mNewsListView.onRefreshComplete(true);
+                }
             }
         });
 
@@ -109,7 +131,7 @@ public class NewsMenuDetailTab {
 
         String cache = CacheUtil.getCache(mUrl, mActivity);
         if (!TextUtils.isEmpty(cache)) {
-            processData(cache);
+            processData(cache,false);
         }
 
         getDataFromServer();
@@ -121,7 +143,7 @@ public class NewsMenuDetailTab {
             @Override
             public void onSuccess(ResponseInfo<Object> responseInfo) {
                 String result = (String) responseInfo.result;
-                processData(result);
+                processData(result,false);
 
                 CacheUtil.setCache(mUrl, result, mActivity);
 
@@ -140,48 +162,93 @@ public class NewsMenuDetailTab {
         });
     }
 
-    private void processData(String json) {
+    //下拉加载下一页数据
+    protected void getMoreDataFromServer() {
+        HttpUtils utils = new HttpUtils();
+        utils.send(HttpRequest.HttpMethod.GET, mMoreUrl, new RequestCallBack<String>() {
+
+            @Override
+            public void onSuccess(ResponseInfo<String> responseInfo) {
+                String result = responseInfo.result;
+                processData(result,true);//需要下拉加载更多数据传isMore为true
+
+                // 收起下拉刷新控件
+                mNewsListView.onRefreshComplete(true);
+            }
+
+            @Override
+            public void onFailure(HttpException error, String msg) {
+                // 请求失败
+                error.printStackTrace();
+                Toast.makeText(mActivity, msg, Toast.LENGTH_SHORT).show();
+
+                // 收起下拉刷新控件
+                mNewsListView.onRefreshComplete(false);
+            }
+        });
+    }
+
+    private void processData(String json,boolean isMore) {
         Gson gson = new Gson();
-        NewsTabBean newsTabBean = gson.fromJson(json, NewsTabBean.class);
+        Type type = new TypeToken<NewsTabBean>() {
+        }.getType();
+        NewsTabBean newsTabBean = gson.fromJson(json, type);//tyep相当于NewsTabBean.class
 
-        // 头条新闻填充数据
-        mTopNews = newsTabBean.data.topnews;
-        if (mTopNews != null) {
-            mViewPager.setAdapter(new TopNewsAdapter());
-            mCirclePageIndicator.setViewPager(mViewPager);
-            mCirclePageIndicator.setSnap(true);// 快照方式展示(小圆点)
-
-            mCirclePageIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-                @Override
-                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-                }
-
-                @Override
-                public void onPageSelected(int position) {
-                    // 更新头条新闻标题
-                    NewsTabBean.TopNews topNews = mTopNews.get(position);
-                    mTvTitle.setText(topNews.title);
-                }
-
-                @Override
-                public void onPageScrollStateChanged(int state) {
-
-                }
-            });
-
-            // 更新第一个头条新闻标题
-            mTvTitle.setText(mTopNews.get(0).title);
-
-            // 默认让第一个小圆点选中(解决页面销毁后重新初始化时,Indicator仍然保留上次圆点位置的bug)
-            mCirclePageIndicator.onPageSelected(0);
+        //下拉加载的下一页数据
+        String moreUrl = newsTabBean.data.more;
+        if (!TextUtils.isEmpty(moreUrl)) {
+            mMoreUrl = GlobalConstants.SERVER_URL + moreUrl;
+        } else {
+            mMoreUrl = null;
         }
 
-        // 列表新闻
-        mNewsList = newsTabBean.data.news;
-        if (mNewsList != null) {
-            mNewsListAdapter = new NewsListAdapter();
-            mNewsListView.setAdapter(mNewsListAdapter);
+        if(!isMore){//如果没有加载下一页数据，正常填空数据
+
+            // 头条新闻填充数据
+            mTopNews = newsTabBean.data.topnews;
+            if (mTopNews != null) {
+                mViewPager.setAdapter(new TopNewsAdapter());
+                mCirclePageIndicator.setViewPager(mViewPager);
+                mCirclePageIndicator.setSnap(true);// 快照方式展示(小圆点)
+
+                mCirclePageIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                    @Override
+                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                    }
+
+                    @Override
+                    public void onPageSelected(int position) {
+                        // 更新头条新闻标题
+                        NewsTabBean.TopNews topNews = mTopNews.get(position);
+                        mTvTitle.setText(topNews.title);
+                    }
+
+                    @Override
+                    public void onPageScrollStateChanged(int state) {
+
+                    }
+                });
+
+                // 更新第一个头条新闻标题
+                mTvTitle.setText(mTopNews.get(0).title);
+
+                // 默认让第一个小圆点选中(解决页面销毁后重新初始化时,Indicator仍然保留上次圆点位置的bug)
+                mCirclePageIndicator.onPageSelected(0);
+            }
+
+            // 列表新闻
+            mNewsList = newsTabBean.data.news;
+            if (mNewsList != null) {
+                mNewsListAdapter = new NewsListAdapter();
+                mNewsListView.setAdapter(mNewsListAdapter);
+            }
+        }else {
+            // 加载更多数据
+            ArrayList<NewsTabBean.NewsData> moreNews = newsTabBean.data.news;
+            mNewsList.addAll(moreNews);// 将数据追加在原来的集合中
+            // 刷新listview
+            mNewsListAdapter.notifyDataSetChanged();
         }
 
     }
