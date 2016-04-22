@@ -1,6 +1,7 @@
 package com.hyj.administrator.intelligentlife.base.impl.menudetail;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -21,6 +22,7 @@ import com.hyj.administrator.intelligentlife.domain.NewsTabBean;
 import com.hyj.administrator.intelligentlife.global.GlobalConstants;
 import com.hyj.administrator.intelligentlife.utils.CacheUtil;
 import com.hyj.administrator.intelligentlife.utils.SharedPreUtil;
+import com.hyj.administrator.intelligentlife.NewsContentActivity;
 import com.hyj.administrator.intelligentlife.view.PullToRefreshListView;
 import com.hyj.administrator.intelligentlife.view.TopNewsViewPager;
 import com.lidroid.xutils.BitmapUtils;
@@ -148,6 +150,10 @@ public class NewsMenuDetailTab {
                 TextView tvTitle = (TextView) view.findViewById(R.id.tv_title);
                 tvTitle.setTextColor(Color.GRAY);
                 // mNewsAdapter.notifyDataSetChanged();//全局刷新, 也有同样效果但浪费性能
+
+                Intent intent = new Intent(mActivity, NewsContentActivity.class);
+                intent.putExtra("newsUrl", news.url);
+                mActivity.startActivity(intent);
 
             }
         });
