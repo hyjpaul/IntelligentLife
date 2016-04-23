@@ -16,15 +16,16 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.hyj.administrator.intelligentlife.NewsContentActivity;
 import com.hyj.administrator.intelligentlife.R;
 import com.hyj.administrator.intelligentlife.domain.News;
 import com.hyj.administrator.intelligentlife.domain.NewsTabBean;
 import com.hyj.administrator.intelligentlife.global.GlobalConstants;
 import com.hyj.administrator.intelligentlife.utils.CacheUtil;
 import com.hyj.administrator.intelligentlife.utils.SharedPreUtil;
-import com.hyj.administrator.intelligentlife.NewsContentActivity;
 import com.hyj.administrator.intelligentlife.view.PullToRefreshListView;
 import com.hyj.administrator.intelligentlife.view.TopNewsViewPager;
+import com.hyj.administrator.viewpagerindicator.CirclePageIndicator;
 import com.lidroid.xutils.BitmapUtils;
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.ViewUtils;
@@ -33,7 +34,6 @@ import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest;
 import com.lidroid.xutils.view.annotation.ViewInject;
-import com.viewpagerindicator.CirclePageIndicator;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;

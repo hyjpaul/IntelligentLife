@@ -6,7 +6,7 @@
               android:orientation="vertical">
 
 
-    <com.viewpagerindicator.TabPageIndicator
+    <com.hyj.administrator.viewpagerindicator.TabPageIndicator
         android:id="@+id/indicator"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

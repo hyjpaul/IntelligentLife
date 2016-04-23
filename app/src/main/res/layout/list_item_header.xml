@@ -29,7 +29,7 @@
                 android:textColor="#fff"
                 android:textSize="16sp"/>
 
-            <com.viewpagerindicator.CirclePageIndicator
+            <com.hyj.administrator.viewpagerindicator.CirclePageIndicator
                 android:id="@+id/indicator_circle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

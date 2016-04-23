@@ -3,10 +3,10 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
-<FrameLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-    <include layout="@layout/title_bar"/>
+
+    <include layout="@layout/title_bar"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"/>
 
     <ProgressBar
         android:layout_gravity="bottom"
@@ -15,9 +15,9 @@
         android:layout_height="wrap_content"
         style="?android:progressBarStyleHorizontal"
         android:max="100"
-        android:visibility="gone"
+        android:visibility="invisible"
         />
-</FrameLayout>
+
     <WebView
         android:id="@+id/wv_news"
         android:layout_width="match_parent"

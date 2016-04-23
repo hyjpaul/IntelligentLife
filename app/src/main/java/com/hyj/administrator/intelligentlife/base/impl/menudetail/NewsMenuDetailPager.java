@@ -9,9 +9,9 @@ import android.view.ViewGroup;
 import com.hyj.administrator.intelligentlife.R;
 import com.hyj.administrator.intelligentlife.base.BaseMenuDetailPager;
 import com.hyj.administrator.intelligentlife.domain.News;
+import com.hyj.administrator.viewpagerindicator.TabPageIndicator;
 import com.lidroid.xutils.ViewUtils;
 import com.lidroid.xutils.view.annotation.ViewInject;
-import com.viewpagerindicator.TabPageIndicator;
 
 import java.util.ArrayList;
 
