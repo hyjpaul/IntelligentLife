@@ -3,9 +3,12 @@ package com.hyj.administrator.intelligentlife.base.impl.menudetail;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -40,8 +43,8 @@ import java.util.ArrayList;
 
 
 /**
- * 菜单详情页-新闻 NewsMenuDetailPager 中的ViewPager的页签页面对象
- * <p>
+ * 菜单详情页-新闻 NewsMenuDetailPager 中的ViewPager的页签页面对象(服务器返回12个顶部Indicator的标题这里就有12个)
+ * <p/>
  * * ViewPagerIndicator使用流程: 1.引入库 2.解决support-v4冲突(让两个版本一致) 3.从例子程序中拷贝布局文件
  * 4.从例子程序中拷贝相关代码(指示器和viewpager绑定; 重写getPageTitle返回标题) 5.在清单文件中增加样式 6.背景修改为白色
  * 7.修改样式-背景样式&文字样式
@@ -76,6 +79,8 @@ public class NewsMenuDetailTab {
     private PullToRefreshListView mNewsListView;
 
     private NewsListAdapter mNewsListAdapter;
+
+    private Handler mHandler;//用于头条新闻的图片轮播
 
     public NewsMenuDetailTab(Activity activity, News.NewsTabData newsTabData) {
 
@@ -143,7 +148,7 @@ public class NewsMenuDetailTab {
 
                 if (!readIds.contains(news.id + "")) {// 避免重复添加同一个id,只有不包含当前id,才追加
                     readIds = readIds + news.id + ",";
-                    SharedPreUtil.setString(mActivity,"read_ids",readIds);
+                    SharedPreUtil.setString(mActivity, "read_ids", readIds);
                 }
 
                 // 要将被点击的item的新闻文字颜色改为灰色, 局部刷新, view对象就是当前被点击的ListView的item对象
@@ -165,7 +170,7 @@ public class NewsMenuDetailTab {
 
         String cache = CacheUtil.getCache(mUrl, mActivity);
         if (!TextUtils.isEmpty(cache)) {
-            processData(cache,false);
+            processData(cache, false);
         }
 
         getDataFromServer();
@@ -177,7 +182,7 @@ public class NewsMenuDetailTab {
             @Override
             public void onSuccess(ResponseInfo<Object> responseInfo) {
                 String result = (String) responseInfo.result;
-                processData(result,false);
+                processData(result, false);
 
                 CacheUtil.setCache(mUrl, result, mActivity);
 
@@ -204,7 +209,7 @@ public class NewsMenuDetailTab {
             @Override
             public void onSuccess(ResponseInfo<String> responseInfo) {
                 String result = responseInfo.result;
-                processData(result,true);//需要下拉加载更多数据传isMore为true
+                processData(result, true);//需要下拉加载更多数据传isMore为true
 
                 // 收起下拉刷新控件
                 mNewsListView.onRefreshComplete(true);
@@ -222,7 +227,7 @@ public class NewsMenuDetailTab {
         });
     }
 
-    private void processData(String json,boolean isMore) {
+    private void processData(String json, boolean isMore) {
         Gson gson = new Gson();
         Type type = new TypeToken<NewsTabBean>() {
         }.getType();
@@ -236,7 +241,7 @@ public class NewsMenuDetailTab {
             mMoreUrl = null;
         }
 
-        if(!isMore){//如果没有加载下一页数据，正常填空数据
+        if (!isMore) {//如果没有加载下一页数据，正常填空数据
 
             // 头条新闻填充数据
             mTopNews = newsTabBean.data.topnews;
@@ -277,7 +282,64 @@ public class NewsMenuDetailTab {
                 mNewsListAdapter = new NewsListAdapter();
                 mNewsListView.setAdapter(mNewsListAdapter);
             }
-        }else {
+
+            // 保证启动自动轮播逻辑只执行一次,也就是第一次进入的时候new一个handler,一次sendEmptyMessageDelayed,其他的时候handler不是空的所以跳过这段，但内部消息内循环了所以可以轮播图片,否则一直发消息会阻塞
+            if (mHandler == null) {
+                mHandler = new Handler() {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        int currentItem = mViewPager.getCurrentItem();
+                        currentItem++;
+
+                        if (currentItem > mTopNews.size() - 1) {
+                            currentItem = 0;// 如果已经到了最后一个页面,跳到第一页
+                        }
+
+                        mViewPager.setCurrentItem(currentItem);
+
+                        mHandler.sendEmptyMessageDelayed(0, 3000);// 继续发送延时3秒的消息,形成内循环
+                    }
+                };
+
+                mHandler.sendEmptyMessageDelayed(0, 3000);// 发送延时3秒的消息
+
+                //当用户按住头条新闻图片时停止图片轮播，手放开继续轮播
+                mViewPager.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        switch (event.getAction()) {
+                            case MotionEvent.ACTION_DOWN:
+//                                System.out.println("ACTION_DOWN");
+                                // 停止广告自动轮播
+                                // 删除handler的所有消息
+                                mHandler.removeCallbacksAndMessages(null);
+                                // mHandler.post(new Runnable() {
+                                //这个方法与callback有关具体怎么用还不知道
+                                // @Override
+                                // public void run() {
+                                // //在主线程运行  收到消息不用在handlemessage处理了直接在这里
+                                // }
+                                // });
+                                break;
+
+                            case MotionEvent.ACTION_UP:
+//                                System.out.println("ACTION_UP");
+                                // 启动广告
+                                mHandler.sendEmptyMessageDelayed(0, 3000);
+                                break;
+
+                            case MotionEvent.ACTION_CANCEL://事件取消时执行,当按下viewpager后还没抬起又直接去滑动listview这样抬起事件就被ListView拿去了,导致viewpager抬起事件无法响应被取消
+                                mHandler.sendEmptyMessageDelayed(0, 3000);
+                                break;
+
+                            default:
+                                break;
+                        }
+                        return false;//TODO: 为什么？和true以及super.什么区别
+                    }
+                });
+            }
+        } else {
             // 加载更多数据
             ArrayList<NewsTabBean.NewsData> moreNews = newsTabBean.data.news;
             mNewsList.addAll(moreNews);// 将数据追加在原来的集合中
@@ -377,7 +439,7 @@ public class NewsMenuDetailTab {
             String readIds = SharedPreUtil.getString(mActivity, "read_ids", "");
             if (readIds.contains(news.id + "")) {
                 holder.tvTitle.setTextColor(Color.GRAY);
-            }else {//需要写else，因为convertView可能会在下一个未标记的ListView item布局中重用已标记布局
+            } else {//需要写else，因为convertView可能会在下一个未标记的ListView item布局中重用已标记布局
                 holder.tvTitle.setTextColor(Color.BLACK);
             }
 
